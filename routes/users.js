@@ -19,36 +19,34 @@ exports.createAccount = function(req, res) {
   console.info(req.body)
   
   User.findByName({userName:req.body.username}, function(err, data) {
+  	console.log("Callback!!!!---------")
     if ( data ) 
        return res.render("register", { message: 'The email is already used' })
 
-		else {
-      
-      var user = new User({
-      	userName : req.body.username,
-				password : req.body.password,
-				email : req.body.email })
-      
-      console.info("Creating user:",user);
-      
-      user.save( function(err) {
-        if ( err ) {
-          console.error(err);
-          if(err == "ERR_DB") return res.send(500)
-          
-          else if(err == "ERR_USER_EXISTS")
-            return res.redirect("/", { message: 'The email is already used' })
-        }
-        else {
-          req.logIn(user, function(err) {
-            if ( err ) {
-              console.error(err)
-              return res.send(500)
-            } 
-            else return res.redirect("/")
-          })
-        }
-      })
-    }
+		var user = new User({
+			userName : req.body.username,
+			password : req.body.password,
+			email : req.body.email })
+		
+		console.info("Creating user:",user);
+		
+		user.save( function(err) {
+			if ( err ) {
+				console.error(err);
+				if(err == "ERR_DB") return res.send(500)
+				
+				else if(err == "ERR_USER_EXISTS")
+					return res.redirect("/", { message: 'The email is already used' })
+			}
+			else {
+				req.logIn(user, function(err) {
+					if ( err ) {
+						console.error(err)
+						return res.send(500)
+					} 
+					else return res.redirect("/")
+				})
+			}
+		})
   })
 }

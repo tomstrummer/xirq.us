@@ -100,6 +100,7 @@ app.get('/', ensureAuthenticated, function(req, res){
 app.get('/login', function(req, res){
   res.render('login');
 });
+
 app.post('/login', function(req, res, next) {
   passport.authenticate('local', function(err, user, info) {
     if (err) { return next(err); }
@@ -123,11 +124,18 @@ app.get('/logout', function(req, res){
   res.redirect("/login");
 });
 
+app.get('/test',function(req,res) {
+  console.log("TEST",req.query)
+  User.find({userName:req.query.user},function(e,u) {
+  	console.log("USER",e,u)
+  	res.write("hi")
+	})
+})
 
-app.post('/register', users.createAccount);
+app.post('/register', users.createAccount)
 app.get('/register', function(req, res){
   res.render('register');
-});
+})
 
 
 function quit(sig) {
