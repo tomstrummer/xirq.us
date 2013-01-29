@@ -124,4 +124,3 @@ if [ -z \$OPENSHIFT_RUN_DIR ]; then
 fi
 EOF
 chmod +x ${OPENSHIFT_DATA_DIR}diy_env.sh
-
