@@ -18,13 +18,15 @@ exports.createAccount = function(req, res) {
   console.info("====CREATE ACCOUNT====")
   console.info(req.body)
   
-  User.findByName({userName:req.body.username}, function(err, data) {
-  	console.log("Callback!!!!---------")
-    if ( data ) 
-       return res.render("register", { message: 'The email is already used' })
+  var uid = req.body.username
+  User.findByName({userName:uid}, function(err, data) {
+    if ( data ) {
+			console.log("User already exists!",uid)
+    	return res.render("register", { message: 'The email is already used' })
+		}
 
 		var user = new User({
-			userName : req.body.username,
+			userName : uid,
 			password : req.body.password,
 			email : req.body.email })
 		

@@ -44,7 +44,7 @@ User.authenticate = function(userName, password, cb) {
 		if ( user.password == input_pass ) 
 			return cb(null, user)
 
-		return cb("Incorrect password", false)
+		return cb("ERR_INVALID_PASS", false)
 	})
 }
 

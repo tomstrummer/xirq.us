@@ -67,61 +67,49 @@ passport.deserializeUser(function(username, done) {
 //   Strategies in passport require a `verify` function, which accept
 //   credentials (in this case, a username and password), and invoke a callback
 //   with a user object.  
-passport.use(new LocalStrategy( { usernameField: 'userName', passwordField: 'password' },
+passport.use(new LocalStrategy( { usernameField: 'username', passwordField: 'password' },
   function(username, password, done) {
     process.nextTick(function() {
-      User.authenticate(username, password, function (error, result) {
-        console.info("locastrategy");
-        console.info(error);
-        console.info(result);
-        if (error) return done(error);
-        
-        else {
-          if (!result)
-            return done(null, false, { message: 'Invalid credentials' })
-          
-          return done(null, result)
-        }
+      User.authenticate(username, password, function (error, user) {
+        console.info("locastrategy:",error,user)
+        if ( error == "ERR_NOT_FOUND") return done(error,user,"Not found")
+        if ( error == "ERR_INVALID_PASS") return done(error,user,"Invalid password")
+        return done(error,user)
       })
     })
 }))
   
 
 function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
+  if (req.isAuthenticated()) { return next() }
   res.redirect('/login');
 }
 
-app.get('/', ensureAuthenticated, function(req, res){
-  res.render('index', { user: req.user });
+app.get('/', ensureAuthenticated, function(req, res) {
+  res.render('index', { user: req.user })
 });
 
 
-app.get('/login', function(req, res){
-  res.render('login');
+app.get('/login', function(req, res) {
+  res.render('login')
 });
 
 app.post('/login', function(req, res, next) {
   passport.authenticate('local', function(err, user, info) {
-    if (err) { return next(err); }
-    if (!user) {
-      console.info("103");
-      console.info(info);
-      return res.render('login', { "user": req.user, "message": info.message });
-    }else if(!user.verifiedPass){
-      console.info("104");
-      return res.render('login', { "user": req.user, "message": info.message });
-    }
+    if ( err ) { return next(err) }
+    if ( ! user ) 
+      return res.render('login', { "user": req.user, "message": info })
+
     req.logIn(user, function(err) {
-      if (err) { return next(err); }
-      return res.redirect("/");
+      if (err) { return next(err) }
+      return res.redirect("/")
     });
-  })(req, res, next);
+  })(req, res, next)
 });
 
 app.get('/logout', function(req, res){
-  req.logout();
-  res.redirect("/login");
+  req.logout()
+  res.redirect("/login")
 });
 
 app.get('/test',function(req,res) {
@@ -129,32 +117,33 @@ app.get('/test',function(req,res) {
   User.find({userName:req.query.user},function(e,u) {
   	console.log("USER",e,u)
   	res.write("hi")
+  	res.done()
 	})
 })
 
 app.post('/register', users.createAccount)
 app.get('/register', function(req, res){
-  res.render('register');
+  return res.render('register')
 })
 
 
 function quit(sig) {
 	if (typeof sig === "string") {
-		console.log('%s: Received %s - terminating Node server ...', Date(Date.now()), sig);
-		process.exit(1);
+		console.log('%s: Received %s - terminating Node server ...', Date(Date.now()), sig)
+		process.exit(1)
 	}
-	console.log('%s: Node server stopped.', Date(Date.now()) );
+	console.log('%s: Node server stopped.', Date(Date.now()) )
 }
 
 // Process on exit and signals.
 process.on('exit', function() { quit() });
 
 'SIGHUP,SIGINT,SIGQUIT,SIGILL,SIGTRAP,SIGABRT,SIGBUS,SIGFPE,SIGSEGV,SIGTERM'.split(',').forEach(function(sig, index, array) {
-    process.on(sig, function() { quit(sig) });
-});
+    process.on(sig, function() { quit(sig) })
+})
 
 /* Run server  */
 server.listen(config.listen_port, config.listen_ip, function() {
 	console.log('%s: Node (version: %s) %s started on %s:%d ...', Date(Date.now()), 
-		process.version, process.argv[1], config.listen_ip, config.listen_port);
+		process.version, process.argv[1], config.listen_ip, config.listen_port )
 });
