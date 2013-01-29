@@ -5,7 +5,7 @@ var express = require('express')
   , passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy
   , RedisStore = require('connect-redis')(express)
-  , RedisDB = require('redis')
+  , redis = require('redis')
   , mongoose = require("mongoose")
   , User = require('./models/User')
   , routes = require('./routes')
@@ -20,6 +20,11 @@ db.once('open', function callback () {
 });
 db = mongoose.connect(config.mongo_url)
 
+redisClient = redis.createClient(config.redis_opts.port, config.redis_opts.host);
+redisClient.on("error", function (err) {
+  console.error("REDIS Error ", err);
+});
+
 // configure Express
 app.configure(function() {
   app.set('views', __dirname + '/views');
@@ -31,7 +36,7 @@ app.configure(function() {
   app.use(passport.initialize());
   // Redis will store sessions
   app.use(express.session( { store: new RedisStore(config.redis_opts), 
-  	secret: 'keyboard cat', 
+  	secret: 'keyboard catfish', 
   	cookie: { secure: false, maxAge:86400000 } } ));
   // Initialize Passport!  Also use passport.session() middleware, to support
   // persistent login sessions (recommended).
@@ -125,5 +130,23 @@ app.get('/register', function(req, res){
 });
 
 
+function quit(sig) {
+	if (typeof sig === "string") {
+		console.log('%s: Received %s - terminating Node server ...', Date(Date.now()), sig);
+		process.exit(1);
+	}
+	console.log('%s: Node server stopped.', Date(Date.now()) );
+}
+
+// Process on exit and signals.
+process.on('exit', function() { quit() });
+
+'SIGHUP,SIGINT,SIGQUIT,SIGILL,SIGTRAP,SIGABRT,SIGBUS,SIGFPE,SIGSEGV,SIGTERM'.split(',').forEach(function(sig, index, array) {
+    process.on(sig, function() { quit(sig) });
+});
+
 /* Run server  */
-server.listen(config.listen_port);
+server.listen(config.listen_port, config.listen_ip, function() {
+	console.log('%s: Node (version: %s) %s started on %s:%d ...', Date(Date.now()), 
+		process.version, process.argv[1], config.listen_ip, config.listen_port);
+});
