@@ -20,7 +20,7 @@
     "mime" : "*",
     "uglify-js" : "*",
     "active-x-obfuscator" : "*"
-  }
+  },
   "devDependencies": {},
   "bundleDependencies": [],
 
@@ -31,4 +31,5 @@
 
   "scripts": {
    "start": "node server.js"
-  }}
+  }
+}
