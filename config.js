@@ -3,7 +3,7 @@ var env = process.env
 
 module.exports = {
 	mongo_url : env.OPENSHIFT_MONGODB_DB_HOST ? 
-		format( "mongodb://%s:%d/xirqus?poolSize=5", 
+		format( "mongodb://xirqus:xirqus@%s:%d/xirqus?poolSize=5", 
 			env.OPENSHIFT_MONGODB_DB_HOST,
 			parseInt(env.OPENSHIFT_MONGODB_DB_PORT) ) : 
 		'mongodb://localhost:27017/xirqus?poolSize=5',
