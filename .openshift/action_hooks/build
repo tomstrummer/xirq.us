@@ -13,4 +13,4 @@ if [ ! -e ${OPENSHIFT_REPO_DIR}node_modules ]; then
 fi
 npm install
 # To keep node running if crashed
-npm install supervisor -g
+which supervisor &>/dev/null || npm install supervisor -g
