@@ -6,11 +6,19 @@ var express = require('express')
   , LocalStrategy = require('passport-local').Strategy
   , RedisStore = require('connect-redis')(express)
   , RedisDB = require('redis')
+  , mongoose = require("mongoose")
   , User = require('./models/User')
   , routes = require('./routes')
   , index = require('./routes/index')
-  , users = require('./routes/users');
+  , users = require('./routes/users')
+  , config = require('./config')
   
+var db = mongoose.connection
+db.on('error', console.error.bind(console, 'Mongo connection error:'))
+db.once('open', function callback () {
+	console.log("Mongo DB connected!")
+});
+db = mongoose.connect(config.mongo_url)
 
 // configure Express
 app.configure(function() {
@@ -22,32 +30,28 @@ app.configure(function() {
   app.use(express.methodOverride());
   app.use(passport.initialize());
   // Redis will store sessions
-  app.use(express.session( { store: new RedisStore(), secret: 'keyboard cat', cookie: { secure: false, maxAge:86400000 } } ));
+  app.use(express.session( { store: new RedisStore(config.redis_opts), 
+  	secret: 'keyboard cat', 
+  	cookie: { secure: false, maxAge:86400000 } } ));
   // Initialize Passport!  Also use passport.session() middleware, to support
   // persistent login sessions (recommended).
   app.use(passport.initialize());
   app.use(passport.session());
-  // Initialize Passport!  Also use passport.session() middleware, to support
-  // persistent login sessions (recommended).
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
 });
 
 
 // Passport session setup.
-//   To support persistent login sessions, Passport needs to be able to
-//   serialize users into and deserialize users out of the session.  Typically,
-//   this will be as simple as storing the user ID when serializing, and finding
-//   the user by ID when deserializing.
 passport.serializeUser(function(user, done) {
   console.info("passport.serializeUser");
   console.info(user);
-  done(null, user.emailAddress);
+  done(null, user.userName);
 });
 
 passport.deserializeUser(function(username, done) {
   // Use User model to retrive the user from the database
-  User.findOne(username, function (err, user) {
+  User.findByName(username, function (err, user) {
     console.info("passport.deserializeUser");
     console.info(user);
     done(err, user);
@@ -57,37 +61,31 @@ passport.deserializeUser(function(username, done) {
 // Use the LocalStrategy within Passport.
 //   Strategies in passport require a `verify` function, which accept
 //   credentials (in this case, a username and password), and invoke a callback
-//   with a user object.  In the real world, this would query a database;
-//   however, in this example we are using a baked-in set of users.
-
-passport.use(new LocalStrategy( { usernameField: 'email', passwordField: 'password' },
+//   with a user object.  
+passport.use(new LocalStrategy( { usernameField: 'userName', passwordField: 'password' },
   function(username, password, done) {
     process.nextTick(function() {
       User.authenticate(username, password, function (error, result) {
         console.info("locastrategy");
         console.info(error);
         console.info(result);
-        if (error) {
-          return done(error);
-        } else {
-          if (!result) {
-            return done(null, false, { message: 'Invalid credentials' });
-          }else if(!result.verifiedPass){
-            return done(null, result, { message: 'Invalid password' });
-          }
-          return done(null, result);            
+        if (error) return done(error);
+        
+        else {
+          if (!result)
+            return done(null, false, { message: 'Invalid credentials' })
+          
+          return done(null, result)
         }
-      });
-    });
-}));
+      })
+    })
+}))
   
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
   res.redirect('/login');
 }
-
-
 
 app.get('/', ensureAuthenticated, function(req, res){
   res.render('index', { user: req.user });
@@ -128,4 +126,4 @@ app.get('/register', function(req, res){
 
 
 /* Run server  */
-server.listen(3000);
+server.listen(config.listen_port);

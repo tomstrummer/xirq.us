@@ -4,8 +4,11 @@ block content
   h1 Create new account
   form(action="/register", method="post")
     div
+      label Username:
+      input(type="text", name="username")
+    div
       label Email:
-      input(type="text", name="emailAddress")
+      input(type="text", name="email")
     div
       label Password:
       input(type="password", name="password")

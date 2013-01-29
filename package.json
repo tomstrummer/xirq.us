@@ -1,12 +1,13 @@
 {
-  "name": "node-passport-couchbase-redis",
+  "name": "xirq.us",
   "version": "0.0.1",
-  "private": false,
+  "private": true,
+  "main": "app",
   "dependencies": {
     "express": "3.0.6",
     "jade": "*",
     "baseview": "*",
-    "couchbase": "*",
+    "mongoose": "*",
     "redis": "*",
     "path": "*",
     "async": "*",
