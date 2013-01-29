@@ -5,6 +5,11 @@
 # could be python, php, ruby, etc.
 . ${OPENSHIFT_DATA_DIR}diy_env.sh
 cd ${OPENSHIFT_REPO_DIR}
+mkdir -p ${OPENSHIFT_DATA_DIR}node_modules
+rmdir node_modules
+ln -s ${OPENSHIFT_DATA_DIR}node_modules
+# normally one would not globally install everything, but this allows
+# for quicker pushes to rhc because it will not re-install everything in node_modules
 npm install
 # To keep node running if crashed
 npm install supervisor -g
