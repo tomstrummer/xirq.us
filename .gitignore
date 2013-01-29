@@ -25,3 +25,5 @@ logs
 results
 
 npm-debug.log
+*.swp
+*.swo
