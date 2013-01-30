@@ -1,8 +1,9 @@
+var helpers = require('./helpers')
 
-/*
- * GET home page.
- */
-
-exports.index = function(req, res){
-  res.render('index', { title: 'Express' });
+exports.setup = function(app){
+	app.get('/', helpers.ensureAuthenticated, function(req, res) {
+		res.render('index', { user: req.user })
+	})
 };
+
+

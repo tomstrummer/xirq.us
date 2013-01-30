@@ -16,6 +16,9 @@
     "passport-local": "0.1.6",
     "connect-flash": "0.1.0",
     "connect-redis" : "1.4.5",
+    "node-sass" : "0.2.6",
+    "socket.io" : "*",
+    "uglify-js-middleware" : "1.0.2",
     "mime" : "1.2.9",
     "uglify-js" : "2.2.3",
     "active-x-obfuscator" : "0.0.1"

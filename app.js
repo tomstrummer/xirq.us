@@ -1,17 +1,18 @@
 var express = require('express')
   , app = express()
   , server = require('http').createServer(app)
+  , socket = require('./socket').listen(server)
   , path = require('path')
   , passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy
   , RedisStore = require('connect-redis')(express)
+  , UglifyMiddleware = require('uglify-js-middleware')
+  , sass = require('node-sass')
   , redis = require('redis')
   , mongoose = require("mongoose")
   , User = require('./models/User')
-  , routes = require('./routes')
-  , index = require('./routes/index')
-  , users = require('./routes/users')
   , config = require('./config')
+  , routes = require('./routes/init')
   
 var db = mongoose.connection
 db.on('error', console.error.bind(console, 'Mongo connection error:'))
@@ -33,6 +34,15 @@ app.configure(function() {
   app.use(express.cookieParser())
   app.use(express.bodyParser())
   app.use(express.methodOverride())
+  app.use(UglifyMiddleware({
+  	src : __dirname + '/public/javascripts',
+	  uglyext: 1
+	}))
+	app.use(sass.middleware({
+		src: __dirname + '/public/stylesheets', 
+		dest: __dirname + '/public/stylesheets',
+		debug: true 
+	}))
   app.use(passport.initialize())
   // Redis will store sessions
   app.use(express.session( { store: new RedisStore(config.redis_opts), 
@@ -78,46 +88,9 @@ passport.use(new LocalStrategy( { usernameField: 'username', passwordField: 'pas
       })
     })
 }))
-  
 
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next() }
-  res.redirect('/login')
-}
-
-app.get('/', ensureAuthenticated, function(req, res) {
-  res.render('index', { user: req.user })
-})
-
-
-app.get('/login', function(req, res) {
-  res.render('login')
-})
-
-app.post('/login', function(req, res, next) {
-  passport.authenticate('local', function(err, user, info) {
-    if ( err ) { return next(err) }
-    if ( ! user ) 
-      return res.render('login', { "user": req.user, "message": info })
-
-    req.logIn(user, function(err) {
-      if (err) { return next(err) }
-      return res.redirect("/")
-    })
-  })(req, res, next)
-})
-
-app.get('/logout', function(req, res){
-  req.logout()
-  res.redirect("/login")
-})
-
-
-app.post('/register', users.createAccount)
-app.get('/register', function(req, res){
-  return res.render('register')
-})
-
+// create all routes here:
+routes.setup(app)
 
 function quit(sig) {
 	if (typeof sig === "string") {
