@@ -1,9 +1,11 @@
-var helpers = require('./helpers')
+var _ = require('underscore')
+  , helpers = require('./helpers')
+  , keys = require('../keys')
 
-exports.setup = function(app){
-	app.get('/', helpers.ensureAuthenticated, function(req, res) {
-		res.render('index', { user: req.user })
+exports.setup = function(app) {
+	app.get('/', function(req, res) {
+		var vals = {}
+		_.extend(vals,keys)
+		res.render( 'index', vals )
 	})
-};
-
-
+}

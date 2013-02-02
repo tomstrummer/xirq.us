@@ -1,5 +1,25 @@
 extends layout
 
+block nav
+  li
+    a#my_location( href='#myLocation' )
+      i.icon-screenshot.icon-white(style='margin-right:3px')
+      | Me
+
+block outer
+  #map (map goes here)
+
 block content
-  h1 Hello
-  p Welcome back #{user.emailAddress}
+
+
+block footer
+  script( src='https://maps.googleapis.com/maps/api/js?key=#{ maps_api_key }&sensor=true',
+          type='text/javascript')
+  script( src='//cdnjs.cloudflare.com/ajax/libs/embedly-jquery/3.0.1/jquery.embedly.min.js',
+          type='text/javascript')
+  script( src='/javascripts/xirqus.js')
+  script( type='text/javascript' )
+    $(document).on('ready',function() {
+      $.embedly.defaults.key = "#{ embedly_key }"
+      xirqus.init()
+    })

@@ -2,18 +2,42 @@ doctype 5
 html
   head
     title="Xirq.us"
+
     link( href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css", 
           rel="stylesheet")
     link( href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-responsive.min.css", 
           rel="stylesheet")
     link(rel='stylesheet', href='/stylesheets/style.css')
 
+    block head
+
   body
-    block content
+    .navbar.navbar-inverse.navbar-fixed-top
+       .navbar-inner
+          .container
+            a.brand( href="/" ) Xirq.us
+            ul.nav
+              li
+                span.spinner( style='display:none;margin-top:6px' )
+
+              block nav
+
+            .nav-collapse.collapse.pull-right
+              ul.nav
+                li
+                  a( href='#' ) (email)
+                li
+                  a(href="/logout") Logout
+
+
+    block outer
+
+    .container
+      block content
 
     script( src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.0/jquery.min.js", 
-            type='text/javascript')
+      type='text/javascript')
     script( src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js", 
-            type='text/javascript')
+      type='text/javascript')
 
     block footer
