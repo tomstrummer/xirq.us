@@ -4,4 +4,5 @@
 module.exports {
 	maps_api_key : "your api key here",
 	embedly_key : "embedly key"
+	fb_app_id : "fb app id"
 }
