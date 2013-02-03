@@ -30,6 +30,18 @@ body {
 	} 
 }
 
+#feedWindow {
+	ul.feed { margin:0 }
+	li.item { 
+		margin-top: 2px;
+		list-style: none;
+		border-bottom: solid 1px #ccc;
+		strong { margin-right: 4px }
+		p { margin: 0 }
+	}
+
+}
+
 #searchWindow {
 	ul { margin:0 }
 	form { margin: 0 }

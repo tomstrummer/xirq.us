@@ -44,8 +44,9 @@ block footer
 
   script#feedItem( type='text/html' )
     li.item
-      img.icon.pull-right( src='http://www.gravatar.com/avatar/{{ from.email_hash }}?s=20' )
-      strong {{ from.userName }}
+      .pull-right
+        strong {{ from.userName }}
+        img.icon( src='http://www.gravatar.com/avatar/{{ from.email_hash }}?s=20' )
       p {{{ body }}}
       .preview.hide.slide
       small.muted {{ ts }}
