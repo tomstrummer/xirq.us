@@ -35,14 +35,15 @@ app.configure(function() {
   app.use(express.bodyParser())
   app.use(express.methodOverride())
   app.use(UglifyMiddleware({
-  	src : __dirname + '/public/javascripts',
-	  uglyext: 1
+  	src : __dirname + '/public',
+	  uglyext: 1,
+		debug: true
 	}))
 	app.use(sass.middleware({
-		src: __dirname + '/public/stylesheets', 
-		dest: __dirname + '/public/stylesheets',
-		debug: true 
-	}))
+		src: __dirname + '/public',
+		output_style : 'compressed',
+    debug: true
+  }))
   app.use(passport.initialize())
   // Redis will store sessions
   app.use(express.session( { store: new RedisStore(config.redis_opts), 
@@ -56,6 +57,9 @@ app.configure(function() {
   app.use(express.static(path.join(__dirname, 'public')))
 })
 
+app.configure('development', function(){
+	app.use(express.errorHandler({ dumpExceptions: true, showStack: true }))
+})
 
 // Passport session setup.
 passport.serializeUser(function(user, done) {

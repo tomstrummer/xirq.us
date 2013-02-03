@@ -20,29 +20,25 @@ body {
 
 #map {
 	width:100%;
-	height:90%
+	height:90%;
+	img { 
+		max-width: none;
+	}
+	label { 
+		width: auto; 
+		display:inline; 
+	} 
 }
 
-#map img { 
-  max-width: none;
-}
-
-#map label { 
-  width: auto; display:inline; 
-} 
-
-#searchWindow ul {
-	margin:0
-}
-
-#searchWindow form { margin: 0 }
-
-#searchWindow li {
-	list-style: none
-}
-
-#searchWindow li .icon {
-	width:20px;
-	height:20px;
-	margin-right: 3px
+#searchWindow {
+	ul { margin:0 }
+	form { margin: 0 }
+	li { 
+		list-style: none ;
+		.icon {
+			width:20px;
+			height:20px;
+			margin-right: 3px
+		}
+	}
 }
