@@ -3,8 +3,11 @@ var _ = require('underscore')
   , keys = require('../keys')
 
 exports.setup = function(app) {
-	app.get('/', function(req, res) {
-		var vals = {}
+	app.get('/', helpers.ensureAuthenticated, function(req, res) {
+		var vals = {
+			username : req.user.userName,
+			email_hash : req.user.email_hash
+		}
 		_.extend(vals,keys)
 		res.render( 'index', vals )
 	})

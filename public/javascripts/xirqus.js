@@ -2,8 +2,69 @@ var xirqus = (function() {
 	var self = {}
 	self.map_symbols = {}
 	self.feed_markers = []
+	self.socket = io.connect(window.location.protocol + "//" + window.location.host)
+
+	self.socket.on('post', function(data) {
+		console.log('post!')
+		var list = $('#feedWindow .feed')
+
+		data.forEach(function(item,i) {
+			item = JSON.parse(item)
+			console.log(item)
+			var listItem = $(ich.feedItem(item))
+			list.prepend(listItem)
+			console.log(listItem.find('p a'))
+			var item = listItem.find('p a').first()
+			if ( ! item.length ) return
+			console.log('embedly link',item)
+			$.embedly.oembed(item.attr('href')).progress(function(data){
+				console.log("Embedly data!",data);
+				var preview = listItem.find('.preview').first()
+				preview.html(ich.embedPreview(data))
+				$(item).on('click',function(evt) {
+					evt.preventDefault()
+					preview.toggle()
+				})
+			}).done(function(results){})
+		})
+	})
+
+	self.socket.on('test',function(d) {
+		console.log('Socket test!',d)
+	})
+
+	self.send_post = function(evt) {
+		evt.preventDefault()
+
+		var msg = $('#postBox').val()
+		self.socket.emit('post', {
+			from : self.user.name,
+			body : msg,
+			feed_id : self.current_place_id 
+		})
+
+		$('#postBox').val('')
+		console.log("Sent",self.current_place_id,msg) 
+	}
+
+	self.show_feed = function(place) {
+		var dialog = $('#feedWindow').modal()
+		dialog.on('hide', function(e) {
+			console.log("Unsubscribe from",place.place_id)
+			self.socket.emit('unsub',{place_id:place.place_id})
+		})
+		$('#feedWindow .feed').html('<li>loading...</li>') //clear the old list	
+		self.current_place_id = place.place_id
+		self.socket.emit('sub', {place_id:place.place_id}) // this gets the 20 most recent items
+		console.log('subscribing to',place.place_id)
+	}
+
+	// TODO unsubscribe
 
 	self.init = function() {
+		console.log('Init!')
+		$('#nav_email').text(self.user.name)
+
 		self.map = new google.maps.Map( $("#map")[0], {
 			center: self.get_last_location(),
 			scrollwheel : false,
@@ -16,7 +77,7 @@ var xirqus = (function() {
 			self.map_center_changed)
 		google.maps.event.addListener( self.map,'zoom_changed',
 			self.map_zoom_changed )
-		google.maps.event.addListener( self.map,'click',function(evt){
+		google.maps.event.addListener( self.map, 'click', function(evt){
 			setTimeout(self.map_clicked, 300, self.map.zoom, evt)
 		})
 
@@ -25,6 +86,7 @@ var xirqus = (function() {
 
 		$('#my_location').on('click',self.get_my_location)
 		$('#search').on('submit',self.location_search)
+		$('#postForm').on('submit',self.send_post)
 
 		if ( ! localStorage ) localStorage = {}
 	}
@@ -127,7 +189,7 @@ var xirqus = (function() {
 							lng2 : b.getSouthWest().lng()},
 			success : function(data,stat,xhr) {
 				// clear old markers
-				self.feed_markers.forEach(function(i,item) {
+				self.feed_markers.forEach(function(item,i) {
 					item.setMap(null)
 					self.feed_markers[i] = null
 				})
@@ -141,12 +203,13 @@ var xirqus = (function() {
 	self.active_places_result = function(places) {
 		places.forEach(function(p,i) {
 			console.log(p,i)
-			var m = new  google.maps.Marker({
+			var marker = new  google.maps.Marker({
 				title : p.name,
 				map : self.map,
 				position : new google.maps.LatLng(p.loc[0],p.loc[1]),
 			})
-			self.feed_markers.push(m)
+			google.maps.event.addListener( marker, 'click', self.show_feed.curry(p))
+			self.feed_markers.push(marker)
 		})
 	}
 

@@ -6,6 +6,7 @@ var schema = mongoose.Schema({
 		userName: String,
 		password: String,
 		email: String,
+		email_hash: String, // md5 for gravatar
 		fullName: String
 	})
 
@@ -14,9 +15,15 @@ schema.pre('save', function(next) {
 	console.log('mongoose pre-save:',this)
 	if ( ! this._id )
 	this._id = this.userName
+
 	var shasum = crypto.createHash('sha1')
 	shasum.update(this.password)
 	this.password = shasum.digest('hex')
+
+	var md5 = crypto.createHash('md5')
+	md5.update(this.password)
+	this.email_hash = md5.digest('hex')
+
 	next()
 })
 
