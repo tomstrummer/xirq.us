@@ -1,5 +1,6 @@
 var io = require('socket.io')
 	, redis = require('redis')
+	, config = require('./config')
 	, User = require('./models/User')
 
 module.exports.listen = function(server) {
@@ -61,9 +62,9 @@ module.exports.listen = function(server) {
 }
 
 function PubSub(socket) {
-	this.sub = redis.createClient()
-	this.pub = redis.createClient()
-	this.meta = redis.createClient()
+	this.sub = redis.createClient(config.redis_opts.port, config.redis_opts.host)
+	this.pub = redis.createClient(config.redis_opts.port, config.redis_opts.host)
+	this.meta = redis.createClient(config.redis_opts.port, config.redis_opts.host)
 	this.socket = socket
 	self = this
 
