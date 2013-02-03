@@ -8,12 +8,15 @@ var xirqus = (function() {
 		console.log('post!')
 		var list = $('#feedWindow .feed')
 
-		data.forEach(function(item,i) {
+		if ( data.length > 1 ) list.html('')
+
+		data.forEach(function(item,i) { // iterate over list of posts
 			item = JSON.parse(item)
 			console.log(item)
 			var listItem = $(ich.feedItem(item))
 			list.prepend(listItem)
-			console.log(listItem.find('p a'))
+
+			// parse links for embed.ly, only the first link per post
 			var item = listItem.find('p a').first()
 			if ( ! item.length ) return
 			console.log('embedly link',item)
