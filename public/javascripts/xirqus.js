@@ -1,57 +1,57 @@
 var xirqus = (function() {
-	exports = {}
-	exports.map_symbols = {}
+	var self = {}
+	self.map_symbols = {}
 
-	exports.init = function() {
-		xirqus.map = new google.maps.Map( $("#map")[0], {
-			center: xirqus.get_last_location(),
+	self.init = function() {
+		self.map = new google.maps.Map( $("#map")[0], {
+			center: self.get_last_location(),
 			scrollwheel : false,
-			zoom: xirqus.get_last_zoom(),
+			zoom: self.get_last_zoom(),
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		})
-		xirqus.places = new google.maps.places.PlacesService(xirqus.map)
+		self.places = new google.maps.places.PlacesService(self.map)
 
-		google.maps.event.addListener( xirqus.map,'center_changed',
-			xirqus.map_center_changed)
-		google.maps.event.addListener( xirqus.map,'zoom_changed',
-			xirqus.map_zoom_changed )
-		google.maps.event.addListener( xirqus.map,'click',function(evt){
-			setTimeout(xirqus.map_clicked, 300, xirqus.map.zoom, evt)
+		google.maps.event.addListener( self.map,'center_changed',
+			self.map_center_changed)
+		google.maps.event.addListener( self.map,'zoom_changed',
+			self.map_zoom_changed )
+		google.maps.event.addListener( self.map,'click',function(evt){
+			setTimeout(self.map_clicked, 300, self.map.zoom, evt)
 		})
 
-		$(window).on('resize orientationChanged', xirqus.adjust_map_bounds)
-		xirqus.adjust_map_bounds()
+		$(window).on('resize orientationChanged', self.adjust_map_bounds)
+		self.adjust_map_bounds()
 
-		$('#my_location').on('click',xirqus.get_my_location)
-		$('#search').on('submit',xirqus.location_search)
+		$('#my_location').on('click',self.get_my_location)
+		$('#search').on('submit',self.location_search)
 
 		if ( ! localStorage ) localStorage = {}
 	}
 
-	exports.map_clicked = function(zoom,evt) {
-		if ( xirqus.map.zoom != zoom ) {
+	self.map_clicked = function(zoom,evt) {
+		if ( self.map.zoom != zoom ) {
 			console.log('double click!!')
 			return // double-clicked!
 		}
-		if ( xirqus.map_window ) xirqus.map_window.close()
+		if ( self.map_window ) self.map_window.close()
 
-		xirqus.map_window = new google.maps.InfoWindow({
+		self.map_window = new google.maps.InfoWindow({
 			position : evt.latLng,
 			content : $('#searchWindow')[0]
 		})
-		xirqus.map_window.open(xirqus.map)
+		self.map_window.open(self.map)
 
 		$('#searchWindow .searching').show()
 
-		xirqus.places.nearbySearch(
+		self.places.nearbySearch(
 				{ location : evt.latLng, 
 					radius: 200 }, 
-				xirqus.places_result )
+				self.places_result )
 
 		$('#places').show()
 	}
 
-	exports.places_result = function(places,stat) {
+	self.places_result = function(places,stat) {
 		$('#searchWindow .searching').hide()
 		var resultList = $('#seachResultList')
 		resultList.text("")
@@ -69,30 +69,36 @@ var xirqus = (function() {
 		for ( i in places ) {
 			var place = places[i]
 			console.log( place )
-			resultList.append( ich.searchResultItem( place ) )
+			var item = ich.searchResultItem( place )
+			item.on('click',self.choose_place.bind(place))
+			resultList.append( item )
 			if ( i > 6 ) break
 		}
-		xirqus.map_window.setContent($('#searchWindow')[0])
+		self.map_window.setContent($('#searchWindow')[0])
 	}
 
-	exports.location_search = function(evt) {
+	self.choose_place = function(place,evt) {
+		evt.preventDefault()
+	}
+
+	self.location_search = function(evt) {
 		evt.preventDefault()
 		$('#searchWindow .searching').show()
 
-		xirqus.places.nearbySearch(
-			{ location : xirqus.map_window.position, 
+		self.places.nearbySearch(
+			{ location : self.map_window.position, 
 				name : $('#searchBox').val(),
 				radius: 200 }, 
-			xirqus.places_result )
+			self.places_result )
 	}
 
-	exports.map_center_changed = function() {
-		center = xirqus.map.center
+	self.map_center_changed = function() {
+		center = self.map.center
 		localStorage['last_loc.lat'] = center.lat()
 		localStorage['last_loc.lng'] = center.lng()
 	}
 
-	exports.get_last_location = function() {
+	self.get_last_location = function() {
 		if( localStorage['last_loc.lat'] ) {
 			var loc = [ 
 				localStorage['last_loc.lat'],
@@ -103,15 +109,15 @@ var xirqus = (function() {
 		return new google.maps.LatLng(loc[0],loc[1])
 	}
 
-	exports.map_zoom_changed = function() {
-		localStorage['last_loc.z'] = xirqus.map.zoom
+	self.map_zoom_changed = function() {
+		localStorage['last_loc.z'] = self.map.zoom
 	}
 
-	exports.get_last_zoom = function() {
+	self.get_last_zoom = function() {
 		return parseInt(localStorage['last_loc.z']) || 8
 	}
 
-	exports.get_my_location = function() {
+	self.get_my_location = function() {
 		if (typeof(navigator.geolocation) == 'undefined') {
 			console.warn('No location')
 			return
@@ -129,7 +135,7 @@ var xirqus = (function() {
 				if ( pos.coords.accuracy ) { // draw accuracy circle:
 					if ( ! this.myLocAccuracy ) {
 						this.myLocAccuracy = new google.maps.Circle({
-								map: xirqus.map,
+								map: self.map,
 								center: position,
 								radius: pos.coords.accuracy,
 								strokeColor: "#0081c6",
@@ -148,7 +154,7 @@ var xirqus = (function() {
 				if ( ! this.myLocMarker ) { // draw marker
 					this.myLocMarker = new google.maps.Marker({
 						position: position, 
-						map: xirqus.map, 
+						map: self.map, 
 						icon: new google.maps.MarkerImage(
 							'/img/my-loc.png',
 							new google.maps.Size(19,19),
@@ -160,7 +166,7 @@ var xirqus = (function() {
 				}
 				else this.myLocMarker.setPosition(position)
 
-				xirqus.map.panTo(position)
+				self.map.panTo(position)
 
 				console.debug('location done.')
 			}, 
@@ -173,14 +179,14 @@ var xirqus = (function() {
 		console.debug('Asking for location...')
 	}
 
-	exports.adjust_map_bounds = function() {
+	self.adjust_map_bounds = function() {
 		var map = $('#map')
 		map.height( map.height() - 50 + 
 				(window.innerHeight - $(document.body).height()) )
 		map.width = $(document.body).width()
 	}
 
-	exports.get_location = function() {
+	self.get_location = function() {
 		if (typeof(navigator.geolocation) == 'undefined') {
 			console.warn('No location')
 			return
@@ -193,11 +199,11 @@ var xirqus = (function() {
 				localStorage['last_loc.lat'] = position.lat()
 				localStorage['last_loc.lng'] = position.lng()
 
-				var symbols = xirqus.map_symbols 
+				var symbols = self.map_symbols 
 				if ( pos.coords.accuracy ) { // draw accuracy circle:
 					if ( ! symbols.myLocAccuracy ) {
 						symbols.myLocAccuracy = new google.maps.Circle({
-								map: xirqus.map,
+								map: self.map,
 								center: position,
 								radius: pos.coords.accuracy,
 								strokeColor: "#0081c6",
@@ -227,7 +233,7 @@ var xirqus = (function() {
 				}
 				else symbols.myLocMarker.setPosition(position)
 
-				xirqus.map.panTo(position)
+				self.map.panTo(position)
 
 				console.debug('location done.')
 			}, 
@@ -238,5 +244,5 @@ var xirqus = (function() {
 		console.debug('Asking for location...')
 	}
 
-	return exports
+	return self
 })()
