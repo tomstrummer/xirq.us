@@ -1,6 +1,7 @@
 var xirqus = (function() {
 	var self = {}
 	self.map_symbols = {}
+	self.feed_markers = []
 
 	self.init = function() {
 		self.map = new google.maps.Map( $("#map")[0], {
@@ -11,7 +12,7 @@ var xirqus = (function() {
 		})
 		self.places = new google.maps.places.PlacesService(self.map)
 
-		google.maps.event.addListener( self.map,'center_changed',
+		google.maps.event.addListener( self.map,'dragend',
 			self.map_center_changed)
 		google.maps.event.addListener( self.map,'zoom_changed',
 			self.map_zoom_changed )
@@ -27,7 +28,7 @@ var xirqus = (function() {
 
 		if ( ! localStorage ) localStorage = {}
 	}
-
+ 
 	self.map_clicked = function(zoom,evt) {
 		if ( self.map.zoom != zoom ) {
 			console.log('double click!!')
@@ -66,11 +67,12 @@ var xirqus = (function() {
 		}
 //		console.log(places)
 
+		console.log('Places search results:')
 		for ( i in places ) {
 			var place = places[i]
 			console.log( place )
 			var item = ich.searchResultItem( place )
-			item.on('click',self.choose_place.bind(place))
+			item.on('click',self.choose_place.curry(place))
 			resultList.append( item )
 			if ( i > 6 ) break
 		}
@@ -78,7 +80,26 @@ var xirqus = (function() {
 	}
 
 	self.choose_place = function(place,evt) {
+		console.log("Place clicked:",place)
 		evt.preventDefault()
+		
+		var loc = place.geometry.location
+		$.ajax('/place', {
+			type : "post",
+			dataType: "json",
+			contentType: "application/json",
+			processData: false,
+			data : JSON.stringify({ 
+				place_id : place.id,
+				name : place.name,
+				loc : [loc.lat(), loc.lng()]
+			}),
+			success : function(data,stat,xhr) {
+				console.log("response:",stat,data)
+				self.map.panTo(loc)
+				// TODO drop pin
+			},
+		})
 	}
 
 	self.location_search = function(evt) {
@@ -93,9 +114,40 @@ var xirqus = (function() {
 	}
 
 	self.map_center_changed = function() {
-		center = self.map.center
+		var center = self.map.center
 		localStorage['last_loc.lat'] = center.lat()
 		localStorage['last_loc.lng'] = center.lng()
+
+		// search for active feeds
+		var b = self.map.getBounds()
+		$.ajax('/place', {
+			data : {lat1 : b.getNorthEast().lat(),
+			        lng1 : b.getNorthEast().lng(),
+							lat2 : b.getSouthWest().lat(),
+							lng2 : b.getSouthWest().lng()},
+			success : function(data,stat,xhr) {
+				// clear old markers
+				self.feed_markers.forEach(function(i,item) {
+					item.setMap(null)
+					self.feed_markers[i] = null
+				})
+
+				console.log("Places",data)
+				self.active_places_result(data)
+			}
+		})
+	}
+
+	self.active_places_result = function(places) {
+		places.forEach(function(p,i) {
+			console.log(p,i)
+			var m = new  google.maps.Marker({
+				title : p.name,
+				map : self.map,
+				position : new google.maps.LatLng(p.loc[0],p.loc[1]),
+			})
+			self.feed_markers.push(m)
+		})
 	}
 
 	self.get_last_location = function() {

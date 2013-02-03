@@ -1,7 +1,9 @@
-var authRoutes = require('./auth')
-  , indexRoutes = require('./index')
+var auth = require('./auth')
+  , index = require('./index')
+  , place = require('./place')
 
 module.exports.setup = function(app) {
-	authRoutes.setup(app)
-	indexRoutes.setup(app)
+	auth.setup(app)
+	index.setup(app)
+	place.setup(app)
 }
