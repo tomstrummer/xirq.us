@@ -41,7 +41,10 @@ module.exports.listen = function(server) {
 				// TODO user info should be pulled from redis
 				User.findByName( data.from, function(err,user) {
 					if ( err ) return console.warn("User find error",err)
-					data.from = user
+					data.from = {
+						userName: user.userName,
+						email_hash: user.email_hash
+					}
 					pubsub.publish(data)
 				})
 			})
