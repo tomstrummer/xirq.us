@@ -10,21 +10,24 @@ var xirqus = (function() {
 
 		if ( data.length > 1 ) list.html('')
 
-		data.forEach(function(item,i) { // iterate over list of posts
-			item = JSON.parse(item)
-			console.log(item)
-			var listItem = $(ich.feedItem(item))
-			list.prepend(listItem)
+		var lastItem = null
+		data.forEach(function(json,i) { // iterate over list of posts
+			json = JSON.parse(json)
+			console.log(json)
+			var listItem = $(ich.feedItem(json))
+			if ( i == 0 ) list.prepend(listItem)
+			else lastItem.after(listItem)
+			lastItem = listItem
 
 			// parse links for embed.ly, only the first link per post
-			var item = listItem.find('p a').first()
-			if ( ! item.length ) return
-			console.log('embedly link',item)
-			$.embedly.oembed(item.attr('href')).progress(function(data){
+			var links = listItem.find('p a').first()
+			if ( ! links.length ) return
+			console.log('embedly link',links)
+			$.embedly.oembed(links.attr('href')).progress(function(data){
 				console.log("Embedly data!",data);
 				var preview = listItem.find('.preview').first()
 				preview.html(ich.embedPreview(data))
-				$(item).on('click',function(evt) {
+				$(links).on('click',function(evt) {
 					evt.preventDefault()
 					preview.toggle()
 				})
@@ -52,17 +55,20 @@ var xirqus = (function() {
 
 	self.show_feed = function(place) {
 		var dialog = $('#feedWindow').modal()
-		dialog.on('hide', function(e) {
+		dialog.find('.title').text(place.name)
+
+		dialog.one('hide', function(e) {
 			console.log("Unsubscribe from",place.place_id)
 			self.socket.emit('unsub',{place_id:place.place_id})
 		})
+
 		$('#feedWindow .feed').html('<li>loading...</li>') //clear the old list	
 		self.current_place_id = place.place_id
-		self.socket.emit('sub', {place_id:place.place_id}) // this gets the 20 most recent items
+		self.socket.emit('sub', {
+			place_id : place.place_id,
+			uid : self.user.name}) // this gets the 20 most recent items
 		console.log('subscribing to',place.place_id)
 	}
-
-	// TODO unsubscribe
 
 	self.init = function() {
 		console.log('Init!')
@@ -78,6 +84,8 @@ var xirqus = (function() {
 
 		google.maps.event.addListener( self.map,'dragend',
 			self.map_center_changed)
+		google.maps.event.addListenerOnce( self.map,'tilesloaded',
+			self.map_center_changed)
 		google.maps.event.addListener( self.map,'zoom_changed',
 			self.map_zoom_changed )
 		google.maps.event.addListener( self.map, 'click', function(evt){
@@ -91,7 +99,7 @@ var xirqus = (function() {
 		$('#search').on('submit',self.location_search)
 		$('#postForm').on('submit',self.send_post)
 
-		if ( ! localStorage ) localStorage = {}
+		if ( ! window.localStorage ) window.localStorage = {}
 	}
  
 	self.map_clicked = function(zoom,evt) {
