@@ -54,10 +54,10 @@ block footer
 
   script#embedPreview( type='text/html' )
     .well
-      img.icon.pull-right( src='{{ thumbnail_url }}' )
+      img.icon.pull-left( src='{{ thumbnail_url }}' )
+      a.small.pull-right( href='{{ original_url }}' ) {{ provider_url }}
       strong {{ title }}
       p {{ description }}
-      a( href='{{ original_url }}' ) {{ provider_url }}
 
   script( src='https://maps.googleapis.com/maps/api/js?key=#{ maps_api_key }&libraries=geometry,places&sensor=true',
           type='text/javascript')
