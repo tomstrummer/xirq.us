@@ -1,4 +1,5 @@
 var env = process.env
+  , keys = require('./keys')
   , format = require('util').format
 
 module.exports = {
@@ -12,7 +13,10 @@ module.exports = {
 		port : process.env.REDIS_PORT || 6379,
 		db : 'xirqus_session',
 	},
-  debug : ! env.OPENSHIFT_GEAR_DNS,
-  listen_port : parseInt(process.env.OPENSHIFT_INTERNAL_PORT) || 8888,
-  listen_ip : process.env.OPENSHIFT_INTERNAL_IP || "127.0.0.1",
+	layout_vars : {
+		maps_api_key : keys.maps_api_key,
+	},
+	debug : ! env.OPENSHIFT_GEAR_DNS,
+	listen_port : parseInt(process.env.OPENSHIFT_INTERNAL_PORT) || 8888,
+	listen_ip : process.env.OPENSHIFT_INTERNAL_IP || "127.0.0.1",
 }
