@@ -24,6 +24,7 @@ block outer
     .modal-header
       button.close( type="button", data-dismiss="modal", aria-hidden="true" )
         &times;
+      small.pull-right.muted.title
       form#postForm.form-horizontal(action='#post',method='post')
         .input-append
           input#postBox.span4( type='text', placeholder='Say something...' )
