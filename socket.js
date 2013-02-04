@@ -11,12 +11,15 @@ module.exports.listen = function(server) {
 		socket.set('pubsub', new PubSub(socket))
 
 		socket.on('sub', function (data) {
-			console.log("Subscribe!", data)
+			console.log("Subscribe!", socket.id, data)
 			socket.get('pubsub',function(err,pubsub) {
 				if (err) return console.warn("Error getting pubsub",err)
+				if ( pubsub == null ) { // reconnect
+					pubsub = new PubSub(socket)
+					socket.set('pubsub', pubsub)
+				}
 				pubsub.subscribe(data.place_id)
 				pubsub.list(function(items) {
-					console.log("pubsub sending list", items)
 					socket.emit('post',items)
 				})
 			})
@@ -26,7 +29,8 @@ module.exports.listen = function(server) {
 			console.log("Unsubscribe",data)
 			socket.get('pubsub',function(err,pubsub) {
 				if (err) return console.warn("Error getting pubsub",err)
-				console.log("Unsubscribing to",data.place_id)
+				console.log("Unsubscribing from",data.place_id)
+				if ( pubsub == null ) return
 				pubsub.unsubscribe(data.place_id)
 			})
 		})
@@ -34,6 +38,11 @@ module.exports.listen = function(server) {
 		socket.on('post', function(data) {
 			socket.get('pubsub',function(err,pubsub) {
 				if (err) return console.warn("Error getting pubsub",err)
+				if ( pubsub == null ) { // reconnect
+					pubsub = new PubSub(socket)
+					socket.set('pubsub', pubsub)
+					pubsub.subscribe(data.place_id)
+				}
 
 				data.ts = new Date()
 				data.body = data.body.replace(
@@ -55,7 +64,7 @@ module.exports.listen = function(server) {
 			socket.get('pubsub',function(err,pubsub) {
 				if (err) return console.warn("Error getting pubsub",err)
 				console.log("client disconnecting")
-				pubsub.quit()
+				if ( pubsub != null ) pubsub.quit()
 			})
 		})
 	})
@@ -64,18 +73,20 @@ module.exports.listen = function(server) {
 function PubSub(socket) {
 	this.sub = redis.createClient(config.redis_opts.port, config.redis_opts.host)
 	this.pub = redis.createClient(config.redis_opts.port, config.redis_opts.host)
-	this.meta = redis.createClient(config.redis_opts.port, config.redis_opts.host)
 	this.socket = socket
-	self = this
 
 	this.sub.on('subscribe',function(channel,count) {
 		console.log("----------------- subscribed to", channel, count)
 	})
+
 	this.sub.on('message', function(channel, msg) {
-		console.log("+++++++++++++++++ Broadcast post", channel, msg)
+		// Note: calling 'this.socket' or aliasing the outer scope with 'self'
+		// and calling 'self.socket' doesn't seem to work - all pubsubs seem 
+		// to get associated to a single socket.
+		console.log("+++++++++++++++++ Broadcast post", socket.id, channel, msg)
 		try {
-			self.socket.emit("post", [msg])
-		} catch( e ) { console.error("=======================",e) }
+			socket.emit("post", [msg])
+		} catch( e ) { console.error("============== Socket emit error",e) }
 	})
 }
 
@@ -92,7 +103,7 @@ PubSub.prototype.list = function(cb) {
 		console.warn("PubSub not yet subscribed to a feed!")
 		return []
 	}
-	this.meta.lrange('list:'+this.feed_id,0,20,function(err,items) {
+	this.pub.lrange('list:'+this.feed_id,0,20,function(err,items) {
 		if ( err ) return console.error("Error getting list items",this.feed_id, err)
 		if ( ! cb ) return console.warn('pubsub list: invalid callback',cb)
 		cb(items)
@@ -107,12 +118,17 @@ PubSub.prototype.unsubscribe = function() {
 
 PubSub.prototype.publish = function(data) {
 	if ( ! this.feed_id ) 
-		return console.warn("-------- Not subscribed, dropping", data)
+		return console.warn("------------ Not subscribed, dropping", data)
+
 	data = JSON.stringify(data)
-	this.pub.publish("ps:"+this.feed_id, data)
-//	this.meta.incr('count:'+this.feed_id)
-	this.meta.lpush('list:'+this.feed_id, data)
-	console.log("Published to ", this.feed_id, data)
+	this.pub.multi()
+		.publish("ps:"+this.feed_id, data)
+//		.incr('count:'+this.feed_id)
+		.lpush('list:'+this.feed_id, data)
+		.exec(function(err,results) {
+			if ( err ) return console.error("Redis pub error", err)
+			console.log("Published to ", this.feed_id, results, data )
+		})
 }
 
 PubSub.prototype.quit = function() {
