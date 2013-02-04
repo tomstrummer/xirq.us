@@ -14,3 +14,9 @@ fi
 npm install
 # To keep node running if crashed
 which supervisor &>/dev/null || npm install supervisor -g
+
+# this is something that should be manually SCP'd to the data dir, then
+# it will be symlinked to the repo dir on every deploy.
+if [ -e ${OPENSHIFT_DATA_DIR}keys.js ]; then
+	ln -s ${OPENSHIFT_DATA_DIR}keys.js
+fi
