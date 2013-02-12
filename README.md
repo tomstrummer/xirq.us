@@ -6,10 +6,19 @@ see *where* things are happening, as they happen.
 
 The live app is running at http://xirq.us
 
-Some boilerplate code borrowed from:
+Features:
+* Real-time push updates when viewing a feed (using Redis and Socket.io)
+* Markdown support
+* [oEmbed](http://oembed.com/) support for inline link previews
+* Google Maps integration
+* Deploys to RedHat OpenShift
+
+Some boilerplate code was borrowed from:
 * [node-passport-couchbase-redis](https://github.com/hardlifeofapo/node-passport-couchbase-redis)
 * [openshift-diy-nodejs-redis](https://github.com/eddie168/openshift-diy-nodejs-redis)
 * [nodejs-pub-sub-chat-demo](https://github.com/steffenwt/nodejs-pub-sub-chat-demo)
+
+This app was originally created during the [Downcity JS](http://downcityjs.com/) hackathon in Providence, and took home the "Best Solo" prize!
 
 
 ## Development
@@ -19,10 +28,11 @@ If you want to improve/ modify/ deploy your own, here's how to start:
 Copy `sample_keys.js` to `keys.js` and put in your proper values; also, edit any additional
 parameters in `config.js`.
 
-For local development, you'll need [MongoDB](http://mongodb.org) 
+For local development, you'll need [Node.js](http://nodejs.org), [MongoDB](http://mongodb.org) 
 and [Redis](http://redis.io/) installed.
 
     # on mac: 
+    brew install node
     brew install mongodb
     brew install redis
 
@@ -54,13 +64,13 @@ Change values in `.openshift/action_hooks/pre_build` to change node or redis ver
 See [openshift-diy-nodejs-redis](https://github.com/eddie168/openshift-diy-nodejs-redis) 
 for more details.
 
-Note that you need to either checkin a version of `keys.js` - if you don't want to do this,
-you can copy it to your remote node and link it into your repo dir like so:
+Note that you need to either checkin a version of `keys.js`  or copy it to your RHC instance
+like so:
 
     scp keys.js abc1234@myapp-mydomain.rhcloud.com:app-root/data/
     
-then the [post-build](.openshift/post-build) hook will symlink it to the project dir 
-when you do a `git push` to rhc.
+then the [post-build](.openshift/action_hooks/post-build) hook will symlink `keys.js` 
+to the project dir `~/app-root/repo` when you do a `git push` to rhc.
 
 Finally, your app should be running at `http://myapp-mydomain.rhcloud.com`
 
@@ -69,6 +79,9 @@ Finally, your app should be running at `http://myapp-mydomain.rhcloud.com`
 
 * Heat maps - instead of Google Maps markers, use circles with size/ color/ 
   saturation/ transparency to represent different levels of activity
+* TTL on posts
+* Auto-generate demo data for live site
+* Location permalinks
  * Consider swapping Google Maps for Leaflet/ OSM
 * Use foursquare instead of Google Places (it sucks for venues that are not 
   restaurants/ entertainment)
