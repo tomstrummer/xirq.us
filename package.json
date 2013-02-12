@@ -7,6 +7,7 @@
   "dependencies": {
     "express": "3.0.6",
     "jade": "0.28.1",
+    "discount": "*",
     "baseview": "0.0.3",
     "mongoose": "3.5.4",
     "redis": "0.8.2",

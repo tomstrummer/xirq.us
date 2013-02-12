@@ -11,6 +11,7 @@ Some boilerplate code borrowed from:
 * [openshift-diy-nodejs-redis](https://github.com/eddie168/openshift-diy-nodejs-redis)
 * [nodejs-pub-sub-chat-demo](https://github.com/steffenwt/nodejs-pub-sub-chat-demo)
 
+
 ## Development
 
 If you want to improve/ modify/ deploy your own, here's how to start:
@@ -67,7 +68,9 @@ Finally, your app should be running at `http://myapp-mydomain.rhcloud.com`
 ## TODO
 
 * Heat maps - instead of Google Maps markers, use circles with size/ color/ 
- saturation to represent different levels of activity
+  saturation/ transparency to represent different levels of activity
+ * Consider swapping Google Maps for Leaflet/ OSM
+* Use foursquare instead of Google Places (it sucks for venues that are not 
+  restaurants/ entertainment)
 * Authenticate the uid sent in posts (e.g. integrate socket.io w/ passport)
-* Use markdown to parse post messages
 * Twitter features - @user messaging, #hashtags, etc.

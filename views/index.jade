@@ -1,17 +1,19 @@
 extends layout
 
-block nav // additional nav components
+//- additional nav components
+block nav
   li
     a#my_location( href='#myLocation' )
       i.icon-screenshot.icon-white(style='margin-right:3px')
       | Me
 
-// parts of the DOM before bootstrap .container
+//- parts of the DOM before bootstrap .container
 block outer
-  #map (Loading map...)
+  .map-container
+    #map (Loading map...)
 
   div(style='display:none')
-    // this DOM element is used when a map area is clicked to search nearby
+    //- this DOM element is used when a map area is clicked to search nearby
     #searchWindow
       h5 Nothing here yet!
       small search for a location to start a new feed
@@ -37,7 +39,7 @@ block content
 
 block footer
 
-  // icanhaz template:
+  //- icanhaz templates:
   script#searchResultItem( type='text/html' )
     li.item
       img.icon( src='{{ icon }}' )
@@ -54,8 +56,8 @@ block footer
 
   script#embedPreview( type='text/html' )
     .well
-      img.icon.pull-left( src='{{ thumbnail_url }}' )
-      a.small.pull-right( href='{{ original_url }}' ) {{ provider_url }}
+      {{{ preview }}}
+      a.small.pull-right( href='{{ original_url }}', target='preview' ) {{ provider_url }}
       strong {{ title }}
       p {{ description }}
 

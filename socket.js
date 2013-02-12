@@ -1,5 +1,6 @@
 var io = require('socket.io')
 	, redis = require('redis')
+	, md = require('discount')
 	, config = require('./config')
 	, User = require('./models/User')
 
@@ -45,8 +46,10 @@ module.exports.listen = function(server) {
 				}
 
 				data.ts = new Date()
-				data.body = data.body.replace(
-					new RegExp('http([^\\s]+)'),'<a href="http$1">http$1</a>')
+				data.body = md.parse(data.body,
+					md.flags.noHTML | md.flags.safelink | md.flags.autolink)
+				// data.body = data.body.replace( // auto-link (if we weren't using markdown
+				// new RegExp('http([^\\s]+)'),'<a href="http$1">http$1</a>')
 
 				// TODO user info should be pulled from redis
 				User.findByName( data.from, function(err,user) {

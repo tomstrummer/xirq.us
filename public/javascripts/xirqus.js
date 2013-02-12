@@ -24,12 +24,27 @@ var xirqus = (function() {
 			if ( ! links.length ) return
 			console.log('embedly link',links)
 			$.embedly.oembed(links.attr('href')).progress(function(data){
-				console.log("Embedly data!",data);
+				console.log("Embedly data!",data)
 				var preview = listItem.find('.preview').first()
+				/*
+				if ( data.type == 'video' || data.type == 'rich')
+						data.preview = data.html
+				else {
+				*/
+					if ( data.type == 'photo' && ! data.thumbnail_url )
+						data.thumbnail_url = data.url
+					if ( data.thumbnail_url )
+						data.preview = app.t(
+							'<img class="thumbnail" src="{thumbnail_url}" title="{title}" />', 
+							data )
+				//}
+
 				preview.html(ich.embedPreview(data))
 				$(links).on('click',function(evt) {
 					evt.preventDefault()
 					preview.toggle()
+					preview.find('img.thumbnail').first()
+						.css('max-width',preview.innerWidth())
 				})
 			}).done(function(results){})
 		})
@@ -214,7 +229,7 @@ var xirqus = (function() {
 	self.active_places_result = function(places) {
 		places.forEach(function(p,i) {
 			console.log(p,i)
-			var marker = new  google.maps.Marker({
+			var marker = new google.maps.Marker({
 				title : p.name,
 				map : self.map,
 				position : new google.maps.LatLng(p.loc[0],p.loc[1]),
@@ -307,8 +322,7 @@ var xirqus = (function() {
 
 	self.adjust_map_bounds = function() {
 		var map = $('#map')
-		map.height( map.height() - 50 + 
-				(window.innerHeight - $(document.body).height()) )
+		map.height( window.innerHeight-40 )
 		map.width = $(document.body).width()
 	}
 
