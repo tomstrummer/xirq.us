@@ -68,9 +68,10 @@ block footer
   script( src='//cdnjs.cloudflare.com/ajax/libs/ICanHaz.js/0.10/ICanHaz.min.js',
     type='text/javascript')
   script( src="/socket.io/socket.io.js", type='text/javascript' )
-  script( src='/javascripts/app.js', type='text/javascript' )
-  script( src='/javascripts/xirqus.js', type='text/javascript' )
+  != js('utils')
+  != js('xirqus')
   script( type='text/javascript' )
+    utils.globalPatches()
     $(document).on('ready',function() {
       $.embedly.defaults.key = "#{ embedly_key }"
 
