@@ -13,6 +13,7 @@ if [ ! -e ${OPENSHIFT_REPO_DIR}node_modules ]; then
 fi
 npm install
 # To keep node running if crashed
+which coffee &>/dev/null || npm install coffee-script -g
 which supervisor &>/dev/null || npm install supervisor -g
 
 # this is something that should be manually SCP'd to the data dir, then
