@@ -47,7 +47,6 @@ self.send_post = (evt) ->
   evt.preventDefault()
   msg = $("#postBox").val()
   self.socket.emit "post",
-    from: self.user.name
     body: msg
     feed_id: self.current_place_id
 

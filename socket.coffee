@@ -1,12 +1,25 @@
 io = require("socket.io")
+passportSocketIo = require("passport.socketio");
 redis = require("redis")
 md = require("discount")
 config = require("./config")
 User = require("./models/User")
+keys = require("./keys")
 
-module.exports.listen = (server) ->
+module.exports.listen = (server, sessionStore) ->
   io_client = io.listen(server)
 
+  io_client.set "authorization",
+    passportSocketIo.authorize
+      key:    'connect.sid'        #the cookie where express (or connect) stores its session id.
+      secret: keys.session_secret  #the session secret to parse the cookie
+      store:   sessionStore        #the session store that express uses
+      fail: (data, accept) ->      # *optional* callbacks on success or fail
+        console.warn('Socket auth failure!',data)
+        accept(null, false)        # second param indicates whether or not to allow handshake
+      success: (data, accept) ->
+        accept(null, true)
+  
   io_client.sockets.on "connection", (socket) ->
     
     socket.emit "test",
@@ -43,13 +56,12 @@ module.exports.listen = (server) ->
           pubsub.subscribe data.place_id
         data.ts = new Date()
         data.body = md.parse(data.body, md.flags.noHTML | md.flags.safelink | md.flags.autolink)
-        User.findByName data.from, (err, user) ->
-          return console.warn("User find error", err) if err
-          data.from =
-            userName: user.userName
-            email_hash: user.email_hash
+        
+        data.from =
+          userName: socket.handshake.user.userName
+          email_hash: socket.handshake.user.email_hash
 
-          pubsub.publish data
+        pubsub.publish data
 
 
     socket.on "disconnect", ->

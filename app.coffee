@@ -6,13 +6,15 @@ passport = require("passport")
 LocalStrategy = require("passport-local").Strategy
 RedisStore = require("connect-redis")(express)
 assets = require('connect-assets')
-#redis = require("redis")
 mongoose = require("mongoose")
 
-socket = require("./socket").listen(server)
 User = require("./models/User")
 config = require("./config")
 routes = require("./routes/init")
+keys = require('./keys')
+
+sessionStore = new RedisStore(config.redis_opts)
+socket = require("./socket").listen(server, sessionStore)
 
 db = mongoose.connection
 db.on "error", console.error.bind(console, "Mongo connection error:")
@@ -33,8 +35,8 @@ app.configure ->
   app.use express.methodOverride()
 
   app.use express.session(
-    store: new RedisStore(config.redis_opts)
-    secret: "keyboard catfish"
+    store:  sessionStore
+    secret: keys.session_secret
     cookie:
       secure: false
       maxAge: 86400000
