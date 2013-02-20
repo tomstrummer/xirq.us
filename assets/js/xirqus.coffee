@@ -11,7 +11,7 @@ self.socket.on "post", (data) ->
   lastItem = null
   data.forEach (json, i) -> # iterate over list of posts
     json = JSON.parse(json)
-    console.log json
+#    console.log json
     listItem = $(ich.feedItem(json))
     if i is 0
       list.prepend listItem
@@ -21,15 +21,15 @@ self.socket.on "post", (data) ->
     
     # parse links for embed.ly, only the first link per post
     links = listItem.find("p a").first()
-    return console.log("embedly link", links)  unless links.length
+#    console.log("embedly links", links)
+    return unless links.length
     
     $.embedly.oembed(links.attr("href")).progress((data) ->
-      console.log "Embedly data!", data
+#      console.log "Embedly data!", data
       preview = listItem.find(".preview").first()
       data.thumbnail_url = data.url  if data.type is "photo" and not data.thumbnail_url
-      data.preview = utils.t(
-        "<img class='thumbnail' src='{thumbnail_url}' title='{title}' />",
-        data )  if data.thumbnail_url
+      data.preview = "<img class='thumbnail' src='#{data.thumbnail_url}' 
+                      title='#{data.title}' />" if data.thumbnail_url
       preview.html ich.embedPreview(data)
       $(links).on "click", (evt) ->
         evt.preventDefault()
@@ -131,7 +131,7 @@ self.places_result = (places, stat) ->
   console.log "Places search results:"
   for i of places
     place = places[i]
-    console.log place
+#    console.log place
     item = ich.searchResultItem(place)
     item.on "click", self.choose_place.curry(place)
     resultList.append item
@@ -183,19 +183,16 @@ self.map_center_changed = ->
       lng2: b.getSouthWest().lng()
 
     success: (data, stat, xhr) ->
-      
       # clear old markers
-      self.feed_markers.forEach (item, i) ->
+      while( item = self.feed_markers.shift() )
         item.setMap null
-        self.feed_markers[i] = null
-
-      console.log "Places", data
+#      console.log "Places", data
       self.active_places_result data
 
 
 self.active_places_result = (places) ->
   places.forEach (p, i) ->
-    console.log p, i
+#    console.log p, i
     marker = new google.maps.Marker(
       title: p.name
       map: self.map
