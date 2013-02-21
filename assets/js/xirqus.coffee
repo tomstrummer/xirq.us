@@ -78,6 +78,7 @@ self.init = ->
   self.map = new google.maps.Map($("#map")[0],
     center: self.get_last_location()
     scrollwheel: false
+    styles: self.mapStyles
     zoom: self.get_last_zoom()
     mapTypeId: google.maps.MapTypeId.ROADMAP
   )
@@ -322,3 +323,23 @@ self.get_location = ->
 
   console.debug "Asking for location..."
 
+self.mapStyles = [
+  { featureType: "all", stylers: [ saturation: 50 ] },
+  { featureType: 'administrative', stylers: [] },
+  { featureType: 'all', elementType: 'labels' },
+  { featureType: "road", stylers: [
+      { hue: "#00ffee" },
+      { lightness: 10 },
+      { saturation: -80 }
+    ]
+  },
+  { featureType: "water", stylers: [
+      { saturation: -70 },
+      { lightness: -50 }
+    ]
+  },
+  { featureType: 'poi', stylers: [
+      { saturation: -50 }
+    ]
+  }
+]
