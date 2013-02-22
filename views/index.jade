@@ -12,16 +12,6 @@ block outer
   .map-container
     #map (Loading map...)
 
-  div(style='display:none')
-    //- this DOM element is used when a map area is clicked to search nearby
-    #searchWindow
-      h5 Nothing here yet!
-      small search for a location to start a new feed
-      form#search(action='#search',method='get')
-        input#searchBox(type='text', placeholder='filter nearby...')
-      .searching Searching...
-      ul#seachResultList
-
   #feedWindow.modal.hide.fade
     .modal-header
       button.close( type="button", data-dismiss="modal", aria-hidden="true" )
@@ -40,6 +30,16 @@ block content
 block footer
 
   //- icanhaz templates:
+  script#searchWindow( type='text/html' )
+    #searchWindowContent
+      h5.title Nothing here yet!
+      small Choose a a location or search to start a new feed
+      form#search(action='#search',method='get')
+        input#searchBox(type='text', placeholder='filter nearby...')
+      .searching Searching...
+      ul.resultList
+
+
   script#searchResultItem( type='text/html' )
     li.item
       img.icon( src='{{ icon }}' )
@@ -67,6 +67,7 @@ block footer
     type='text/javascript')
   script( src='//cdnjs.cloudflare.com/ajax/libs/ICanHaz.js/0.10/ICanHaz.min.js',
     type='text/javascript')
+  script( src="/javascripts/infobubble-compiled.js", type='text/javascript' )
   script( src="/socket.io/socket.io.js", type='text/javascript' )
   != js('utils')
   != js('xirqus')

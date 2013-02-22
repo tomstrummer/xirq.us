@@ -101,22 +101,24 @@ self.map_clicked = (zoom, evt) ->
     console.log "double click!!"
     return # double-clicked!
   self.map_window.close()  if self.map_window
-  self.map_window = new google.maps.InfoWindow(
+  self.map.panTo evt.latLng
+  # TODO re-use existing InfoBubble?
+  self.map_window = new InfoBubble(
     position: evt.latLng
-    content: $("#searchWindow")[0]
+    content: ich.searchWindow()[0]
   )
   self.map_window.open self.map
-  $("#searchWindow .searching").show()
+  $(self.map_window.getContent()).find('.searching').show()
   self.places.nearbySearch
     location: evt.latLng
     radius: 200
   , self.places_result
-  $("#places").show()
 
 
 self.places_result = (places, stat) ->
-  $("#searchWindow .searching").hide()
-  resultList = $("#seachResultList")
+  content = $(self.map_window.getContent())
+  content.find('.searching').hide()
+  resultList = content.find('.resultList').first()
   resultList.text ""
   resultCodes = google.maps.places.PlacesServiceStatus
   unless stat is resultCodes.OK
@@ -132,16 +134,17 @@ self.places_result = (places, stat) ->
   console.log "Places search results:"
   for i of places
     place = places[i]
-#    console.log place
+    console.log place
     item = ich.searchResultItem(place)
     item.on "click", self.choose_place.curry(place)
     resultList.append item
     break if i > 6
-  self.map_window.setContent $("#searchWindow")[0]
+  self.map_window.maxHeight_changed() # forces re-size
 
 self.choose_place = (place, evt) ->
   console.log "Place clicked:", place
   evt.preventDefault()
+  self.map_window.close()
   loc = place.geometry.location
   $.ajax "/place",
     type: "post"
@@ -156,9 +159,9 @@ self.choose_place = (place, evt) ->
     success: (data, stat, xhr) ->
       console.log "response:", stat, data
       self.map.panTo loc
+      self.active_places_result data.places
 
 
-# TODO drop pin
 self.location_search = (evt) ->
   evt.preventDefault()
   $("#searchWindow .searching").show()
@@ -188,7 +191,7 @@ self.map_center_changed = ->
       while( item = self.feed_markers.shift() )
         item.setMap null
 #      console.log "Places", data
-      self.active_places_result data
+      self.active_places_result data.places
 
 
 self.active_places_result = (places) ->

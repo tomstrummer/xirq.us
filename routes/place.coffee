@@ -14,7 +14,7 @@ exports.setup = (app) ->
       if err
         console.error "Save error:", err
         return res.status(500).json(msg: "Error: " + err)
-      res.json msg: "OK - saved"
+      res.json msg: "OK - saved", places: [p]
 
 
   app.get "/place", (req, res) ->
@@ -33,12 +33,13 @@ exports.setup = (app) ->
       Place.find
         loc:
           $within:
-            $box: [[parseFloat(p.lat1), parseFloat(p.lng1)], [parseFloat(p.lat2), parseFloat(p.lng2)]]
+            $box: [[parseFloat(p.lat1), parseFloat(p.lng1)],
+                   [parseFloat(p.lat2), parseFloat(p.lng2)]]
       , (err, results) ->
         if err
           console.log "Find all error", err
           return res.status(500).json(msg: "error: " + err)
-        res.json results
+        res.json msg: "OK", places: results
 
     else
       res.status(403).json msg: "WTF"
