@@ -92,7 +92,7 @@ self.init = ->
   $(window).on "resize orientationChanged", self.adjust_map_bounds
   self.adjust_map_bounds()
   $("#my_location").on "click", self.get_my_location
-  $("#search").on "submit", self.location_search
+  $("#placeSearch").on "submit", self.location_search
   $("#postForm").on "submit", self.send_post
   
 
@@ -100,15 +100,11 @@ self.map_clicked = (zoom, evt) ->
   unless self.map.zoom is zoom
     console.log "double click!!"
     return # double-clicked!
-  self.map_window.close()  if self.map_window
+
   self.map.panTo evt.latLng
-  # TODO re-use existing InfoBubble?
-  self.map_window = new InfoBubble(
-    position: evt.latLng
-    content: ich.searchWindow()[0]
-  )
-  self.map_window.open self.map
-  $(self.map_window.getContent()).find('.searching').show()
+  dialog = $("#searchWindow").modal()
+
+  dialog.find('.searching').show()
   self.places.nearbySearch
     location: evt.latLng
     radius: 200
@@ -116,18 +112,15 @@ self.map_clicked = (zoom, evt) ->
 
 
 self.places_result = (places, stat) ->
-  content = $(self.map_window.getContent())
-  content.find('.searching').hide()
-  resultList = content.find('.resultList').first()
+  dialog = $('#searchWindow')
+  dialog.find('.searching').hide()
+  resultList = dialog.find('.resultList').first()
   resultList.text ""
   resultCodes = google.maps.places.PlacesServiceStatus
   unless stat is resultCodes.OK
     console.log "Places search error!", stat, places
     if stat is resultCodes.ZERO_RESULTS
-      resultList.append ich.searchResultItem(
-        icon: "about:blank"
-        name: "No results found"
-      )
+      resultList.append "<li>No results found! :(</li>"
     return
   
   #		console.log(places)
@@ -136,15 +129,15 @@ self.places_result = (places, stat) ->
     place = places[i]
     console.log place
     item = ich.searchResultItem(place)
-    item.on "click", self.choose_place.curry(place)
+    item.on "click", self.choose_place.curry(dialog, place)
     resultList.append item
     break if i > 6
-  self.map_window.maxHeight_changed() # forces re-size
 
-self.choose_place = (place, evt) ->
+
+self.choose_place = (dialog, place, evt) ->
   console.log "Place clicked:", place
   evt.preventDefault()
-  self.map_window.close()
+  dialog.modal('hide')
   loc = place.geometry.location
   $.ajax "/place",
     type: "post"
@@ -157,7 +150,8 @@ self.choose_place = (place, evt) ->
       loc: [loc.lat(), loc.lng()]
     )
     success: (data, stat, xhr) ->
-      console.log "response:", stat, data
+      dialog.modal('hide')
+      console.log "choose place response:", stat, data
       self.map.panTo loc
       self.active_places_result data.places
 
@@ -166,7 +160,7 @@ self.location_search = (evt) ->
   evt.preventDefault()
   $("#searchWindow .searching").show()
   self.places.nearbySearch
-    location: self.map_window.position
+    location: self.map.center
     name: $("#searchBox").val()
     radius: 200
   , self.places_result
@@ -326,6 +320,7 @@ self.get_location = ->
 
   console.debug "Asking for location..."
 
+
 self.mapStyles = [
   { featureType: "all", stylers: [ saturation: 50 ] },
   { featureType: 'administrative', stylers: [] },
@@ -344,5 +339,7 @@ self.mapStyles = [
   { featureType: 'poi', stylers: [
       { saturation: -50 }
     ]
-  }
+  },
+  # POIs create clickable labels that 
+  { featureType: "poi", elementType: "labels", stylers: [ { visibility: "off" } ] }
 ]

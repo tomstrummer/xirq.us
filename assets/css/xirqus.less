@@ -54,16 +54,24 @@
 	}
 }
 
-#searchWindowContent {
+#searchWindow {
+	max-width: 25em;
 	.title { margin: 3px 0 }
 	ul { margin: 0 }
-	form { margin: 0 }
+  form { margin: 0 }
+  .modal-body { padding-top: 8px }
+  .modal-header { padding-bottom: 4px }
 	li { 
-		list-style: none ;
-		.icon {
+		list-style: none;
+    padding: .2em 0;
+    .icon {
+      position: absolute;
 			width:20px;
 			height:20px;
-			margin-right: 3px
-		}
+    }
+    a {
+      display:block;
+      margin-left: 27px
+    }
 	}
 }
